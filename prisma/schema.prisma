@@ -1,0 +1,77 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserType {
+  BUYER
+  REALTOR
+  ADMIN
+}
+
+model User {
+  id       Int      @id @default(autoincrement())
+  name     String
+  phone    String
+  email    String   @unique
+  password String
+  userType UserType
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  homes           Home[]
+  buyerMessages   Message[] @relation("buyerMessages")
+  realtorMessages Message[] @relation("realtorMessages")
+}
+
+enum PropertyType {
+  RESIDENTIAL
+  COMMERCIAL
+}
+
+model Home {
+  id                Int          @id @default(autoincrement())
+  address           String
+  numberOfBedrooms  Int
+  numberOfBathrooms Float
+  city              String
+  listedDate        DateTime     @default(now())
+  price             Float
+  landSize          Float
+  propertyType      PropertyType
+  realtorId         Int
+  realtor           User         @relation(fields: [realtorId], references: [id])
+  messages          Message[]
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+  images            Image[]
+}
+
+model Image {
+  id     Int    @id @default(autoincrement())
+  url    String
+  homeId Int
+  home   Home   @relation(fields: [homeId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Message {
+  id        Int    @id @default(autoincrement())
+  message   String
+  homeId    Int
+  home      Home   @relation(fields: [homeId], references: [id])
+  relatorId Int
+  relator   User   @relation("realtorMessages",fields: [relatorId], references: [id])
+  buyerId   Int
+  buyer     User   @relation("buyerMessages",fields: [buyerId], references: [id])
+  
+}
